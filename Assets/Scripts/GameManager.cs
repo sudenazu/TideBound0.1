@@ -1,49 +1,127 @@
+
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("Para ve Can")]
-    public int currentCoins = 5; // Başlangıç parası
-    [SerializeField] private TMP_Text coinText; // Ekrandaki coin yazısı
+    [Header("Panels")]
+    public GameObject panelWin;
+    public GameObject panelLose;
 
-    private void Awake()
+    [Header("Timer Settings")]
+    public float timeRemaining = 30f;
+    private bool isGameOver = false;
+
+    [Header("Stats")]
+    public static int currentCoins = 0;
+    public static bool sunPanelPurchased = false;
+
+    // Tıklama sayaçları
+    private int click3 = 0;
+    private int click4 = 0;
+    private int click5 = 0;
+    private int click7 = 0;
+    private int click8 = 0;
+
+    void Awake()
     {
-        if (Instance == null)
+        Instance = this;
+    }
+
+    void Start()
+    {
+        if (panelWin) panelWin.SetActive(false);
+        if (panelLose) panelLose.SetActive(false);
+    }
+
+    void Update()
+    {
+        if (isGameOver) return;
+
+        if (timeRemaining > 0)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            timeRemaining -= Time.deltaTime;
         }
         else
         {
-            Destroy(gameObject);
+            timeRemaining = 0;
+            TriggerLose();
         }
     }
 
-    private void Start()
+    public void CheckPipeRotation(int id)
     {
-        UpdateCoinUI();
+        if (isGameOver) return;
+
+        Debug.Log("Tıklanan Boru ID'si: " + id);
+
+        if (id == 3) click3 = (click3 + 1) % 4;
+        else if (id == 4) click4 = (click4 + 1) % 4;
+        else if (id == 5) click5 = (click5 + 1) % 4;
+        else if (id == 7) click7 = (click7 + 1) % 4;
+        else if (id == 8) click8 = (click8 + 1) % 4;
+
+        CheckWinCondition();
     }
 
+    void CheckWinCondition()
+    {
+        if (click3 == 1 && click4 == 1 &&
+            click5 == 0 && click7 == 0 && click8 == 1)
+        {
+            TriggerWin();
+        }
+    }
+
+    void TriggerWin()
+    {
+        isGameOver = true;
+
+        if (panelWin)
+        {
+            panelWin.SetActive(true);
+            panelWin.transform.SetAsLastSibling();
+        }
+
+        Debug.Log("Oyun Kazandı!");
+    }
+
+    void TriggerLose()
+    {
+        isGameOver = true;
+
+        if (panelLose)
+        {
+            panelLose.SetActive(true);
+            panelLose.transform.SetAsLastSibling();
+        }
+
+        Debug.Log("Süre Bitti - Kaybettin!");
+    }
+
+    // Coin ekleme
     public void AddCoins(int amount)
     {
         currentCoins += amount;
-        UpdateCoinUI();
+        Debug.Log("Coin: " + currentCoins);
     }
 
+    // Coin sıfırlama
     public void ResetCoins()
     {
         currentCoins = 0;
-        UpdateCoinUI();
+        Debug.Log("Coin sıfırlandı!");
+    }
+
+    public void LoseLife()
+    {
+        // Mevcut can sistemin buraya eklenebilir.
     }
 
     public void UpdateCoinUI()
     {
-        if (coinText != null)
-        {
-            coinText.text = currentCoins.ToString();
-        }
+        // Coin arayüzü TaskManager tarafından güncelleniyor.
     }
 }
